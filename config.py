@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Discord Bot Token (обязательно должен быть в .env)
-TOKEN = os.getenv('DISCORD_TOKEN', 'your-discord-bot-token')
+TOKEN = os.getenv('DISCORD_TOKEN', 'MTMyMTUzNjg2MDc5NDY1MDY2NA.GdB_yj.WR9Mj9PUnFT8-wB0L9m5U-_Ackwg0xP_gOdTDc')
 if not TOKEN:
     raise ValueError("Не найден DISCORD_TOKEN в файле .env")
 
