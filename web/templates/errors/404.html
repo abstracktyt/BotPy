@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Страница не найдена{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <h1 class="text-6xl font-bold text-gray-300">404</h1>
+        <p class="text-xl text-gray-400 mt-4">Страница не найдена</p>
+        <a href="{{ url_for('index') }}" class="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            <i class="fas fa-home mr-2"></i>На главную
+        </a>
+    </div>
+</div>
+{% endblock %} 

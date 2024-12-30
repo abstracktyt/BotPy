@@ -1,0 +1,11 @@
+flask==2.3.3
+flask-sqlalchemy==3.1.1
+flask-login==0.6.2
+flask-socketio==5.3.6
+discord.py==2.3.2
+python-dotenv==0.21.0
+eventlet==0.30.2
+dnspython==2.2.1
+Werkzeug==2.3.7
+Jinja2==3.1.2
+SQLAlchemy==2.0.36 

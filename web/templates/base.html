@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Discord Bot Panel{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/@popperjs/core@2">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+    <style>
+        /* Добавляем переменные для тем */
+        :root[data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-primary: #fff;
+            --text-secondary: #94a3b8;
+            --accent: #60a5fa;
+        }
+        
+        :root[data-theme="light"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent: #3b82f6;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            background-color: #60a5fa;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .card {
+            backdrop-filter: blur(16px) saturate(180%);
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn:hover::after {
+            left: 100%;
+        }
+        .avatar {
+            border: 2px solid #60a5fa;
+            transition: all 0.3s ease;
+        }
+        .avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+        }
+
+        /* Анимации для переходов между страницами */
+        .page-transition {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Стили для подсказок */
+        .tippy-box {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+        }
+
+        .tippy-arrow {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="fixed bottom-4 left-4 z-50">
+        <button id="themeToggle" class="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors">
+            <i class="fas fa-sun text-yellow-400 dark:hidden"></i>
+            <i class="fas fa-moon text-blue-400 hidden dark:block"></i>
+        </button>
+    </div>
+    <nav class="bg-gray-900/50 backdrop-blur-lg border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 animate__animated animate__fadeIn">
+                        <i class="fab fa-discord text-2xl text-blue-500 mr-2"></i>
+                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">Bot Panel</span>
+                    </div>
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="{{ url_for('index') }}" class="nav-link px-3 py-2 rounded-md text-sm font-medium hover:text-blue-400">
+                            <i class="fas fa-home mr-2"></i>Главная
+                        </a>
+                        <a href="{{ url_for('stats') }}" class="nav-link px-3 py-2 rounded-md text-sm font-medium hover:text-blue-400">
+                            <i class="fas fa-chart-bar mr-2"></i>Статистика
+                        </a>
+                        <a href="{{ url_for('tickets') }}" class="nav-link px-3 py-2 rounded-md text-sm font-medium hover:text-blue-400">
+                            <i class="fas fa-ticket-alt mr-2"></i>Тикеты
+                        </a>
+                        <a href="{{ url_for('logs') }}" class="nav-link px-3 py-2 rounded-md text-sm font-medium hover:text-blue-400">
+                            <i class="fas fa-list mr-2"></i>Логи
+                        </a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if current_user.is_authenticated %}
+                        <img src="{{ current_user.avatar }}" class="avatar h-8 w-8 rounded-full">
+                        <span class="text-sm font-medium">{{ current_user.username }}</span>
+                        <a href="{{ url_for('logout') }}" class="btn px-4 py-2 rounded-md text-sm font-medium bg-red-500 hover:bg-red-600">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Выход
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 px-4 animate__animated animate__fadeIn">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script>
+        // Управление темой
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+        
+        // Загружаем сохраненную тему
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        root.setAttribute('data-theme', savedTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = root.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            root.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Добавляем уведомления
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full
+                ${type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'} text-white`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                                type === 'error' ? 'fa-exclamation-circle' : 
+                                'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Анимация появления
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Автоматическое скрытие
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Пример использования уведомлений
+        window.addEventListener('load', () => {
+            showNotification('Добро пожаловать в панель управления!', 'success');
+        });
+
+        // Добавляем анимации при наведении
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.classList.add('animate__animated', 'animate__pulse');
+            });
+            card.addEventListener('mouseleave', function() {
+                this.classList.remove('animate__animated', 'animate__pulse');
+            });
+        });
+
+        // Инициализация подсказок
+        tippy('[data-tippy-content]', {
+            animation: 'scale',
+            duration: 200,
+            theme: 'custom'
+        });
+
+        // Анимированные переходы между страницами
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.getAttribute('href').startsWith('/')) {
+                    e.preventDefault();
+                    document.body.style.opacity = '0';
+                    setTimeout(() => {
+                        window.location = link.href;
+                    }, 300);
+                }
+            });
+        });
+
+        // Добавляем подсказки к элементам управления
+        const tooltips = {
+            'themeToggle': 'Переключить тему',
+            'searchLogs': 'Поиск по логам',
+            'logType': 'Фильтр по типу',
+            'searchTickets': 'Поиск по тикетам',
+            'ticketStatus': 'Фильтр по статусу'
+        };
+
+        Object.entries(tooltips).forEach(([id, content]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.setAttribute('data-tippy-content', content);
+            }
+        });
+    </script>
+</body>
+</html>

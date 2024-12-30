@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Логи системы{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-6 animate__animated animate__fadeIn">
+        <h2 class="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+            <i class="fas fa-list-alt mr-2"></i>
+            Системные логи
+        </h2>
+
+        <!-- Фильтры -->
+        <div class="flex items-center space-x-4 mb-6">
+            <select id="logType" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Все типы</option>
+                <option value="BOT" {% if request.args.get('type') == 'BOT' %}selected{% endif %}>
+                    <i class="fas fa-robot"></i> Бот
+                </option>
+                <option value="PANEL" {% if request.args.get('type') == 'PANEL' %}selected{% endif %}>
+                    <i class="fas fa-desktop"></i> Панель
+                </option>
+                <option value="TICKET" {% if request.args.get('type') == 'TICKET' %}selected{% endif %}>
+                    <i class="fas fa-ticket-alt"></i> Тикеты
+                </option>
+                <option value="ERROR" {% if request.args.get('type') == 'ERROR' %}selected{% endif %}>
+                    <i class="fas fa-exclamation-triangle"></i> Ошибки
+                </option>
+            </select>
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="searchLogs" placeholder="Поиск..." 
+                       class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Таблица логов -->
+        <div class="card overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-700">
+                <thead class="bg-gray-800">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-clock mr-2"></i>Время
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-tag mr-2"></i>Тип
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-code-branch mr-2"></i>Действие
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-info-circle mr-2"></i>Детали
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700" id="logsTable">
+                    {% for log in logs %}
+                    <tr class="hover:bg-gray-800 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full
+                                {% if log.type == 'BOT' %}bg-blue-900 text-blue-200
+                                {% elif log.type == 'PANEL' %}bg-green-900 text-green-200
+                                {% elif log.type == 'TICKET' %}bg-purple-900 text-purple-200
+                                {% else %}bg-red-900 text-red-200{% endif %}">
+                                <i class="fas {% if log.type == 'BOT' %}fa-robot
+                                          {% elif log.type == 'PANEL' %}fa-desktop
+                                          {% elif log.type == 'TICKET' %}fa-ticket-alt
+                                          {% else %}fa-exclamation-triangle{% endif %} mr-1"></i>
+                                {{ log.type }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">{{ log.action }}</td>
+                        <td class="px-6 py-4 text-sm">{{ log.details }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Пагинация -->
+        {% if pagination.pages > 1 %}
+        <div class="flex justify-center space-x-2 mt-6">
+            {% for page in range(1, pagination.pages + 1) %}
+            <a href="{{ url_for('logs', page=page, type=request.args.get('type', '')) }}"
+               class="btn px-4 py-2 rounded-lg {% if page == pagination.page %}bg-blue-600{% else %}bg-gray-700{% endif %} hover:bg-blue-500 transition-colors duration-200">
+                {{ page }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('logType').addEventListener('change', function(e) {
+    window.location.href = `{{ url_for('logs') }}?type=${e.target.value}`;
+});
+
+document.getElementById('searchLogs').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#logsTable tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// WebSocket для обновления в реальном времени
+const socket = io();
+socket.on('new_log', function(data) {
+    const table = document.getElementById('logsTable');
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-800 transition-colors duration-200 animate__animated animate__fadeInDown';
+    row.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap text-sm">${data.timestamp}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                ${data.type === 'BOT' ? 'bg-blue-900 text-blue-200' :
+                data.type === 'PANEL' ? 'bg-green-900 text-green-200' :
+                data.type === 'TICKET' ? 'bg-purple-900 text-purple-200' :
+                'bg-red-900 text-red-200'}">
+                <i class="fas ${data.type === 'BOT' ? 'fa-robot' :
+                              data.type === 'PANEL' ? 'fa-desktop' :
+                              data.type === 'TICKET' ? 'fa-ticket-alt' :
+                              'fa-exclamation-triangle'} mr-1"></i>
+                ${data.type}
+            </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm">${data.action}</td>
+        <td class="px-6 py-4 text-sm">${data.details}</td>
+    `;
+    table.insertBefore(row, table.firstChild);
+});
+</script>
+{% endblock %}

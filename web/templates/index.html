@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Discord Bot Panel{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-6 animate__animated animate__fadeIn">
+        <h2 class="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+            <i class="fas fa-robot mr-2"></i>
+            Добро пожаловать, {{ current_user.username }}!
+        </h2>
+        <p class="text-gray-300">Это панель управления Discord ботом.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="card p-6 animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+            <h3 class="text-xl font-bold mb-2 flex items-center">
+                <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+                Статистика
+            </h3>
+            <p class="text-gray-300">Просмотр статистики бота и серверов</p>
+            <a href="{{ url_for('stats') }}" class="btn mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-arrow-right mr-2"></i>Открыть
+            </a>
+        </div>
+
+        <div class="card p-6 animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+            <h3 class="text-xl font-bold mb-2 flex items-center">
+                <i class="fas fa-ticket-alt text-purple-500 mr-2"></i>
+                Тикеты
+            </h3>
+            <p class="text-gray-300">Управление тикетами пользователей</p>
+            <a href="{{ url_for('tickets') }}" class="btn mt-4 inline-block bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-arrow-right mr-2"></i>Открыть
+            </a>
+        </div>
+
+        <div class="card p-6 animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+            <h3 class="text-xl font-bold mb-2 flex items-center">
+                <i class="fas fa-list text-green-500 mr-2"></i>
+                Логи
+            </h3>
+            <p class="text-gray-300">Просмотр системных логов</p>
+            <a href="{{ url_for('logs') }}" class="btn mt-4 inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-arrow-right mr-2"></i>Открыть
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

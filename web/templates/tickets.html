@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Тикеты{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="card p-6 animate__animated animate__fadeIn">
+        <h2 class="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-purple-600">
+            <i class="fas fa-ticket-alt mr-2"></i>
+            Управление тикетами
+        </h2>
+
+        <!-- Фильтры -->
+        <div class="flex items-center space-x-4 mb-6">
+            <select id="ticketStatus" class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="">Все статусы</option>
+                <option value="open">Открытые</option>
+                <option value="closed">Закрытые</option>
+            </select>
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="searchTickets" placeholder="Поиск по тикетам..." 
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+        </div>
+
+        <!-- Список тикетов -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for ticket in tickets %}
+            <div class="card p-4 animate__animated animate__fadeInUp" 
+                 data-animation-delay="{{ loop.index0 * 0.1 }}">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full {% if ticket.status == 'open' %}bg-green-900 text-green-200{% else %}bg-red-900 text-red-200{% endif %}">
+                        <i class="fas {% if ticket.status == 'open' %}fa-lock-open{% else %}fa-lock{% endif %} mr-1"></i>
+                        {{ ticket.status|title }}
+                    </span>
+                    <span class="text-xs text-gray-400">
+                        <i class="far fa-clock mr-1"></i>
+                        {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </span>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">{{ ticket.subject }}</h3>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-400">
+                        <i class="fas fa-user mr-1"></i>
+                        ID: {{ ticket.creator_id }}
+                    </span>
+                    <button class="btn px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium">
+                        <i class="fas fa-eye mr-1"></i>
+                        Просмотр
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('ticketStatus').addEventListener('change', function(e) {
+    const status = e.target.value;
+    const tickets = document.querySelectorAll('.card');
+    
+    tickets.forEach(ticket => {
+        if (!status || ticket.querySelector('.status').textContent.toLowerCase().includes(status)) {
+            ticket.style.display = '';
+        } else {
+            ticket.style.display = 'none';
+        }
+    });
+});
+
+document.getElementById('searchTickets').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const tickets = document.querySelectorAll('.card');
+    
+    tickets.forEach(ticket => {
+        const text = ticket.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            ticket.style.display = '';
+        } else {
+            ticket.style.display = 'none';
+        }
+    });
+});
+
+document.querySelectorAll('[data-animation-delay]').forEach(element => {
+    element.style.animationDelay = `${element.dataset.animationDelay}s`;
+});
+</script>
+{% endblock %}

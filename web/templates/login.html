@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - Discord Bot Panel{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center">
+    <div class="card p-8 w-full max-w-md animate__animated animate__fadeInUp">
+        <div class="text-center mb-8">
+            <i class="fab fa-discord text-6xl text-blue-500 mb-4 animate__animated animate__bounce"></i>
+            <h2 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+                Вход в панель управления
+            </h2>
+            <p class="text-gray-400 mt-2">Используйте ваш аккаунт Discord для входа</p>
+        </div>
+        
+        <div class="space-y-4">
+            <a href="{{ url_for('login') }}" 
+               class="btn w-full flex items-center justify-center py-3 px-4 rounded-lg text-white bg-[#5865F2] hover:bg-[#4752C4] transition-colors duration-300">
+                <i class="fab fa-discord text-xl mr-2"></i>
+                <span class="font-medium">Войти через Discord</span>
+            </a>
+            
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-900 text-gray-400">или</span>
+                </div>
+            </div>
+            
+            <a href="https://discord.com/register" target="_blank" 
+               class="btn w-full flex items-center justify-center py-3 px-4 rounded-lg text-white bg-gray-700 hover:bg-gray-600 transition-colors duration-300">
+                <i class="fas fa-user-plus text-xl mr-2"></i>
+                <span class="font-medium">Создать аккаунт Discord</span>
+            </a>
+        </div>
+        
+        <div class="mt-6 text-center text-sm text-gray-400">
+            <p>Нужна помощь? <a href="#" class="text-blue-400 hover:text-blue-300">Свяжитесь с нами</a></p>
+        </div>
+    </div>
+</div>
+
+<div class="fixed bottom-4 right-4 animate__animated animate__fadeIn" style="animation-delay: 1s">
+    <div class="bg-blue-600/10 backdrop-blur-lg rounded-lg p-4 border border-blue-500/20">
+        <p class="text-sm text-blue-400">
+            <i class="fas fa-info-circle mr-2"></i>
+            Для использования панели необходимы права администратора
+        </p>
+    </div>
+</div>
+{% endblock %}

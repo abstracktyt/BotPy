@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика{% endblock %}
+
+{% block content %}
+<!-- Основные показатели -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Карточки статистики -->
+    <div class="transform hover:-translate-y-1 transition-transform duration-300 card p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-400">Всего серверов</p>
+                <h3 class="text-3xl font-bold text-blue-500">{{ stats.total_servers }}</h3>
+            </div>
+            <div class="bg-blue-500/10 p-3 rounded-lg">
+                <i class="fas fa-server text-2xl text-blue-500"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Остальные карточки... -->
+</div>
+
+<!-- Графики -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <!-- График активности -->
+    <div class="card p-6">
+        <h3 class="text-xl font-bold mb-4">
+            <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+            Активность
+        </h3>
+        <canvas id="activityChart"></canvas>
+    </div>
+
+    <!-- Типы команд -->
+    <div class="card p-6">
+        <h3 class="text-xl font-bold mb-4">
+            <i class="fas fa-code text-purple-500 mr-2"></i>
+            Типы команд
+        </h3>
+        <div class="space-y-4">
+            <!-- Модерация -->
+            <div class="flex items-center gap-4">
+                <div class="w-24 text-sm">Модерация</div>
+                <div class="flex-1 bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div id="mod-bar" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div class="w-16 text-right text-sm text-blue-400">30%</div>
+            </div>
+
+            <!-- Музыка -->
+            <div class="flex items-center gap-4">
+                <div class="w-24 text-sm">Музыка</div>
+                <div class="flex-1 bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div id="music-bar" class="h-full bg-green-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div class="w-16 text-right text-sm text-green-400">25%</div>
+            </div>
+
+            <!-- Утилиты -->
+            <div class="flex items-center gap-4">
+                <div class="w-24 text-sm">Утилиты</div>
+                <div class="flex-1 bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div id="util-bar" class="h-full bg-purple-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div class="w-16 text-right text-sm text-purple-400">25%</div>
+            </div>
+
+            <!-- Веселье -->
+            <div class="flex items-center gap-4">
+                <div class="w-24 text-sm">Веселье</div>
+                <div class="flex-1 bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div id="fun-bar" class="h-full bg-red-500 w-0 transition-all duration-1000"></div>
+                </div>
+                <div class="w-16 text-right text-sm text-red-400">20%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Логи бота -->
+<div class="card p-6 mt-6">
+    <h3 class="text-xl font-bold mb-4">
+        <i class="fas fa-terminal text-green-500 mr-2"></i>
+        Логи бота
+    </h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead>
+                <tr class="border-b border-gray-700">
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-400">Время</th>
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-400">Тип</th>
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-400">Действие</th>
+                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-400">Детали</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for log in logs %}
+                <tr class="hover:bg-gray-800/50 transition-colors">
+                    <td class="px-4 py-3 text-sm text-gray-300">
+                        {{ log.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if log.type == 'BOT' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-400">
+                                <i class="fas fa-robot mr-1"></i>Бот
+                            </span>
+                        {% elif log.type == 'ERROR' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-400">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Ошибка
+                            </span>
+                        {% elif log.type == 'TICKET' %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-500/10 text-purple-400">
+                                <i class="fas fa-ticket-alt mr-1"></i>Тикет
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-500/10 text-gray-400">
+                                <i class="fas fa-info-circle mr-1"></i>Инфо
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-300">{{ log.action }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-400">
+                        {% if log.details %}
+                            <div class="max-w-md truncate" title="{{ log.details }}">
+                                {{ log.details }}
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Пагинация -->
+    {% if pagination.pages > 1 %}
+    <div class="flex justify-center mt-6 gap-2">
+        {% for page in range(1, pagination.pages + 1) %}
+            {% if page == pagination.page %}
+                <span class="px-3 py-1 text-sm bg-blue-500 text-white rounded">{{ page }}</span>
+            {% else %}
+                <a href="{{ url_for('stats', page=page) }}" 
+                   class="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors">
+                    {{ page }}
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Преобразуем данные из Flask в JavaScript
+var activityData = {
+    dates: JSON.parse('{{ activity_dates|tojson|safe }}'),
+    counts: JSON.parse('{{ activity_counts|tojson|safe }}')
+};
+
+// Функция инициализации прогресс-баров
+function initProgressBars() {
+    var bars = [
+        { id: 'mod-bar', percent: 30 },
+        { id: 'music-bar', percent: 25 },
+        { id: 'util-bar', percent: 25 },
+        { id: 'fun-bar', percent: 20 }
+    ];
+
+    bars.forEach(function(bar, index) {
+        setTimeout(function() {
+            var element = document.getElementById(bar.id);
+            if (element) {
+                element.style.width = bar.percent + '%';
+            }
+        }, index * 200);
+    });
+}
+
+// Функция инициализации графика
+function initActivityChart() {
+    var ctx = document.getElementById('activityChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: activityData.dates,
+            datasets: [{
+                label: 'Действия',
+                data: activityData.counts,
+                borderColor: '#60a5fa',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(96, 165, 250, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' действий';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + ' действий';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    initProgressBars();
+    initActivityChart();
+});
+</script>
+{% endblock %}

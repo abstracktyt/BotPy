@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}{{ guild.name }} - Настройки{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Заголовок -->
+    <div class="bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <div class="flex items-center">
+                {% if guild.icon %}
+                <img class="h-12 w-12 rounded-full" src="{{ guild.icon.url }}" alt="">
+                {% else %}
+                <div class="h-12 w-12 rounded-full bg-gray-600 flex items-center justify-center">
+                    <span class="text-xl">{{ guild.name[0] }}</span>
+                </div>
+                {% endif %}
+                <h3 class="ml-4 text-lg leading-6 font-medium text-white">
+                    Настройки сервера {{ guild.name }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('update_settings') }}">
+        <input type="hidden" name="guild_id" value="{{ guild.id }}">
+        
+        <!-- Основные настройки -->
+        <div class="bg-gray-800 shadow overflow-hidden sm:rounded-lg hover-scale">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-white mb-4">
+                    <i class="fas fa-cog mr-2"></i>Основные настройки
+                </h3>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Префикс команд</label>
+                        <input type="text" name="prefix" value="{{ settings.prefix }}" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Роль модератора</label>
+                        <select name="mod_role" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Не выбрано</option>
+                            {% for role in guild.roles %}
+                            <option value="{{ role.id }}" {% if settings.mod_role == role.id|string %}selected{% endif %}>
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Приветствия -->
+        <div class="bg-gray-800 shadow overflow-hidden sm:rounded-lg hover-scale">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-white mb-4">
+                    <i class="fas fa-door-open mr-2"></i>Приветствия
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Канал приветствий</label>
+                        <select name="welcome_channel" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Отключено</option>
+                            {% for channel in guild.text_channels %}
+                            <option value="{{ channel.id }}" {% if settings.welcome_channel == channel.id|string %}selected{% endif %}>
+                                #{{ channel.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Сообщение приветствия</label>
+                        <textarea name="welcome_message" rows="3" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{{ settings.welcome_message }}</textarea>
+                        <p class="mt-2 text-sm text-gray-400">
+                            Доступные переменные: {user} - упоминание пользователя, {server} - название сервера
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Автороль -->
+        <div class="bg-gray-800 shadow overflow-hidden sm:rounded-lg hover-scale">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-white mb-4">
+                    <i class="fas fa-user-tag mr-2"></i>Автороль
+                </h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400">Роль при входе</label>
+                    <select name="autorole" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Отключено</option>
+                        {% for role in guild.roles %}
+                        <option value="{{ role.id }}" {% if settings.autorole == role.id|string %}selected{% endif %}>
+                            {{ role.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Защита -->
+        <div class="bg-gray-800 shadow overflow-hidden sm:rounded-lg hover-scale">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-white mb-4">
+                    <i class="fas fa-shield-alt mr-2"></i>Защита
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="antileak" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 rounded bg-gray-700" {% if settings.antileak %}checked{% endif %}>
+                        <label class="ml-2 block text-sm text-gray-400">
+                            Защита от утечки токенов
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400">Роль мута</label>
+                        <select name="mute_role" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">Не выбрано</option>
+                            {% for role in guild.roles %}
+                            <option value="{{ role.id }}" {% if settings.mute_role == role.id|string %}selected{% endif %}>
+                                {{ role.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="flex justify-end space-x-3">
+            <a href="{{ url_for('index') }}" class="inline-flex items-center px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+                <i class="fas fa-arrow-left mr-2"></i>Назад
+            </a>
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500">
+                <i class="fas fa-save mr-2"></i>Сохранить
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Анимация при изменении настроек
+const inputs = document.querySelectorAll('input, select, textarea');
+inputs.forEach(input => {
+    input.addEventListener('change', () => {
+        input.closest('.hover-scale').classList.add('animate__animated', 'animate__pulse');
+        setTimeout(() => {
+            input.closest('.hover-scale').classList.remove('animate__animated', 'animate__pulse');
+        }, 1000);
+    });
+});
+</script>
+{% endblock %}

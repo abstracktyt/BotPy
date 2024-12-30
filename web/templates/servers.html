@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Серверы{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Статистика -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div class="bg-gray-800 overflow-hidden shadow rounded-lg hover-scale">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-server text-blue-500 text-3xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-400 truncate">Всего серверов</dt>
+                            <dd class="text-2xl font-semibold text-white">{{ stats.total_servers }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 overflow-hidden shadow rounded-lg hover-scale">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-users text-green-500 text-3xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-400 truncate">Всего участников</dt>
+                            <dd class="text-2xl font-semibold text-white">{{ stats.total_members }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 overflow-hidden shadow rounded-lg hover-scale">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-crown text-yellow-500 text-3xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-400 truncate">Крупнейший сервер</dt>
+                            <dd class="text-2xl font-semibold text-white">{{ stats.largest_server }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список серверов -->
+    <div class="bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+            <h3 class="text-lg leading-6 font-medium text-white">
+                <i class="fas fa-server mr-2"></i>Список серверов
+            </h3>
+            <div class="relative">
+                <input type="text" id="serverSearch" placeholder="Поиск серверов..." class="bg-gray-700 border border-gray-600 rounded-md py-2 px-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+        <div class="border-t border-gray-700">
+            <ul class="divide-y divide-gray-700" id="serverList">
+                {% for server in servers %}
+                <li class="hover:bg-gray-700 transition-colors duration-150">
+                    <a href="{{ url_for('guild', guild_id=server.id) }}" class="block">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    {% if server.icon_url %}
+                                    <img class="h-12 w-12 rounded-full" src="{{ server.icon_url }}" alt="">
+                                    {% else %}
+                                    <div class="h-12 w-12 rounded-full bg-gray-600 flex items-center justify-center">
+                                        <span class="text-xl">{{ server.name[0] }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-white">{{ server.name }}</div>
+                                        <div class="mt-1 flex items-center text-sm text-gray-400">
+                                            <span class="mr-4"><i class="fas fa-users mr-1"></i>{{ server.member_count }}</span>
+                                            <span class="mr-4"><i class="fas fa-hashtag mr-1"></i>{{ server.text_channels }}</span>
+                                            <span><i class="fas fa-microphone mr-1"></i>{{ server.voice_channels }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="text-right text-sm text-gray-400 mr-4">
+                                        <div>Создан</div>
+                                        <div>{{ server.created_at }}</div>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Поиск по серверам
+document.getElementById('serverSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const servers = document.getElementById('serverList').getElementsByTagName('li');
+    
+    Array.from(servers).forEach(server => {
+        const name = server.querySelector('.text-white').textContent.toLowerCase();
+        if (name.includes(searchTerm)) {
+            server.style.display = '';
+        } else {
+            server.style.display = 'none';
+        }
+    });
+});
+
+// WebSocket для обновления в реальном времени
+const socket = io();
+socket.on('server_update', function(data) {
+    // Обновление статистики
+    document.querySelector('[data-stat="total_servers"]').textContent = data.total_servers;
+    document.querySelector('[data-stat="total_members"]').textContent = data.total_members;
+    document.querySelector('[data-stat="largest_server"]').textContent = data.largest_server;
+});
+</script>
+{% endblock %}
